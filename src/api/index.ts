@@ -98,6 +98,7 @@ export const getColonyRoleSetEvents = async (
 ): Promise<ColonyRoleSetEvent[]> => {
   const eventFilter = colonyClient.filters.ColonyRoleSet(null, null, null);
   const eventLogs = await getLogs(colonyClient, eventFilter);
+  console.log(eventLogs);
 
   const parsedLogs = await Promise.all(
     eventLogs.map(async event => {
@@ -176,12 +177,12 @@ export const getEvents = async (colonyClient: ColonyClient): Promise<Events[]> =
   const colonyInitialisedEvents = await getColonyInitialisedEvents(colonyClient);
   const colonyRoleSetEvents = await getColonyRoleSetEvents(colonyClient);
   const payoutClaimedEvents = await getPayoutClaimedEvents(colonyClient);
-  const domainAddedEvents = await getDomainAddedEvents(colonyClient);
+  // const domainAddedEvents = await getDomainAddedEvents(colonyClient);
   console.log(colonyInitialisedEvents);
   return [
     ...colonyInitialisedEvents,
     ...colonyRoleSetEvents,
     ...payoutClaimedEvents,
-    ...domainAddedEvents,
+    // ...domainAddedEvents,
   ];
 };

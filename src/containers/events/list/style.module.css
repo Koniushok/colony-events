@@ -1,0 +1,23 @@
+.root {
+  --shadow-color: rgba(62, 118, 244, 0.14);
+  --border-radius: 6px;
+
+  margin: 40px 0;
+  border-radius: var(--border-radius);
+  box-shadow: 0px 3px 3px -2px var(--shadow-color), 0px 3px 4px 0px var(--shadow-color),
+    0px 1px 8px 0px var(--shadow-color);
+}
+
+.root > * {
+  margin-bottom: 2px;
+}
+
+.root > *:first-child {
+  border-top-right-radius: var(--border-radius);
+  border-top-left-radius: var(--border-radius);
+}
+
+.root > *:last-child {
+  border-bottom-right-radius: var(--border-radius);
+  border-bottom-left-radius: var(--border-radius);
+}
