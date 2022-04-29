@@ -11,6 +11,7 @@ const App: React.FC = () => {
   useEffect(() => {
     getColonyClient()
       .then(client => {
+        setError(undefined);
         setColonyClient(client);
       })
       .catch(() => setError('colony client fetch error'));

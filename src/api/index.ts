@@ -4,44 +4,21 @@ import { InfuraProvider } from 'ethers/providers';
 import { getLogs, ColonyRole, getBlockTime } from '@colony/colony-js';
 import { utils } from 'ethers';
 
+import {
+  ColonyInitialisedEventLog,
+  EventLogTypes,
+  DomainAddedEventLog,
+  PayoutClaimedEventLog,
+  EventLogs,
+  ColonyRoleSetEventLog,
+} from '../@types/events';
+
 const MAINNET_NETWORK_ADDRESS = `0x5346D0f80e2816FaD329F2c140c870ffc3c3E2Ef`;
 const MAINNET_BETACOLONY_ADDRESS = `0x869814034d96544f3C62DE2aC22448ed79Ac8e70`;
 
 const provider = new InfuraProvider();
 const wallet = Wallet.createRandom();
 const connectedWallet = wallet.connect(provider);
-
-enum EventTypes {
-  ColonyRoleSet = 'ColonyRoleSet',
-  ColonyInitialised = 'ColonyInitialised',
-  PayoutClaimed = 'PayoutClaimed',
-  DomainAdded = 'DomainAdded',
-}
-
-interface ColonyEventBase<Type extends EventTypes> {
-  logTime: Date;
-  type: Type;
-}
-
-interface ColonyRoleSetEvent extends ColonyEventBase<EventTypes.ColonyRoleSet> {
-  role: string;
-  domainId: string;
-}
-
-interface ColonyInitialisedEvent extends ColonyEventBase<EventTypes.ColonyInitialised> {}
-
-interface PayoutClaimedEvent extends ColonyEventBase<EventTypes.PayoutClaimed> {
-  userAddress: string;
-  amount: string;
-  fundingPotId: string;
-  token: string;
-}
-
-interface DomainAddedEvent extends ColonyEventBase<EventTypes.DomainAdded> {
-  domainId: string;
-}
-
-type Events = ColonyRoleSetEvent | ColonyInitialisedEvent | PayoutClaimedEvent | DomainAddedEvent;
 
 const parseLogTime = async (blockHash: string) => {
   return new Date(await getBlockTime(provider, blockHash));
@@ -51,10 +28,7 @@ const parseBigNumber = (value: utils.BigNumberish): string => {
   return new utils.BigNumber(value).toString();
 };
 
-const parseUserAddress = async (
-  colonyClient: ColonyClient,
-  fundingPotId: utils.BigNumberish,
-): Promise<string> => {
+const parseUserAddress = async (colonyClient: ColonyClient, fundingPotId: utils.BigNumberish): Promise<string> => {
   const humanReadableFundingPotId = new utils.BigNumber(fundingPotId).toString();
 
   const { associatedTypeId } = await colonyClient.getFundingPot(humanReadableFundingPotId);
@@ -72,9 +46,9 @@ export const getColonyClient = async (): Promise<ColonyClient> => {
   return colonyClient;
 };
 
-export const getColonyInitialisedEvents = async (
+export const getColonyInitialisedEventLogs = async (
   colonyClient: ColonyClient,
-): Promise<ColonyInitialisedEvent[]> => {
+): Promise<ColonyInitialisedEventLog[]> => {
   const eventFilter = colonyClient.filters.ColonyInitialised(null, null);
   const eventLogs = await getLogs(colonyClient, eventFilter);
 
@@ -82,10 +56,13 @@ export const getColonyInitialisedEvents = async (
     eventLogs.map(async event => {
       const parsedEvent = colonyClient.interface.parseLog(event);
       const logTime = await parseLogTime(parsedEvent.blockHash);
+      const userAddress = event.address;
 
       return {
+        id: event.blockHash || userAddress,
+        userAddress,
         logTime,
-        type: EventTypes.ColonyInitialised as EventTypes.ColonyInitialised,
+        type: EventLogTypes.ColonyInitialised as EventLogTypes.ColonyInitialised,
       };
     }),
   );
@@ -93,12 +70,9 @@ export const getColonyInitialisedEvents = async (
   return parsedLogs;
 };
 
-export const getColonyRoleSetEvents = async (
-  colonyClient: ColonyClient,
-): Promise<ColonyRoleSetEvent[]> => {
+export const getColonyRoleSetEventLogs = async (colonyClient: ColonyClient): Promise<ColonyRoleSetEventLog[]> => {
   const eventFilter = colonyClient.filters.ColonyRoleSet(null, null, null);
   const eventLogs = await getLogs(colonyClient, eventFilter);
-  console.log(eventLogs);
 
   const parsedLogs = await Promise.all(
     eventLogs.map(async event => {
@@ -106,12 +80,15 @@ export const getColonyRoleSetEvents = async (
 
       const logTime = await parseLogTime(parsedEvent.blockHash);
       const domainId = parseBigNumber(parsedEvent.values.domainId);
+      const userAddress = parsedEvent.values.user;
 
       return {
+        id: event.blockHash || userAddress,
         role: ColonyRole[parsedEvent.values.role],
         logTime,
         domainId,
-        type: EventTypes.ColonyRoleSet as EventTypes.ColonyRoleSet,
+        userAddress,
+        type: EventLogTypes.ColonyRoleSet as EventLogTypes.ColonyRoleSet,
       };
     }),
   );
@@ -119,9 +96,7 @@ export const getColonyRoleSetEvents = async (
   return parsedLogs;
 };
 
-export const getPayoutClaimedEvents = async (
-  colonyClient: ColonyClient,
-): Promise<PayoutClaimedEvent[]> => {
+export const getPayoutClaimedEventLogs = async (colonyClient: ColonyClient): Promise<PayoutClaimedEventLog[]> => {
   const eventFilter = colonyClient.filters.PayoutClaimed(null, null, null);
   const eventLogs = await getLogs(colonyClient, eventFilter);
 
@@ -136,12 +111,13 @@ export const getPayoutClaimedEvents = async (
       const token = parseBigNumber(parsedEvent.values.token);
 
       return {
+        id: event.blockHash || userAddress,
         logTime,
         userAddress,
         amount,
         fundingPotId,
         token,
-        type: EventTypes.PayoutClaimed as EventTypes.PayoutClaimed,
+        type: EventLogTypes.PayoutClaimed as EventLogTypes.PayoutClaimed,
       };
     }),
   );
@@ -149,9 +125,7 @@ export const getPayoutClaimedEvents = async (
   return parsedLogs;
 };
 
-export const getDomainAddedEvents = async (
-  colonyClient: ColonyClient,
-): Promise<DomainAddedEvent[]> => {
+export const getDomainAddedEventLogs = async (colonyClient: ColonyClient): Promise<DomainAddedEventLog[]> => {
   const eventFilter = colonyClient.filters.DomainAdded(null);
   const eventLogs = await getLogs(colonyClient, eventFilter);
 
@@ -161,11 +135,14 @@ export const getDomainAddedEvents = async (
 
       const logTime = await parseLogTime(parsedEvent.blockHash);
       const domainId = parseBigNumber(parsedEvent.values.domainId);
+      const userAddress = event.address;
 
       return {
+        id: event.blockHash || userAddress,
+        userAddress,
         logTime,
         domainId,
-        type: EventTypes.DomainAdded as EventTypes.DomainAdded,
+        type: EventLogTypes.DomainAdded as EventLogTypes.DomainAdded,
       };
     }),
   );
@@ -173,16 +150,23 @@ export const getDomainAddedEvents = async (
   return parsedLogs;
 };
 
-export const getEvents = async (colonyClient: ColonyClient): Promise<Events[]> => {
-  const colonyInitialisedEvents = await getColonyInitialisedEvents(colonyClient);
-  const colonyRoleSetEvents = await getColonyRoleSetEvents(colonyClient);
-  const payoutClaimedEvents = await getPayoutClaimedEvents(colonyClient);
-  // const domainAddedEvents = await getDomainAddedEvents(colonyClient);
-  console.log(colonyInitialisedEvents);
-  return [
-    ...colonyInitialisedEvents,
-    ...colonyRoleSetEvents,
-    ...payoutClaimedEvents,
-    // ...domainAddedEvents,
-  ];
+export const getEventLogs = async (colonyClient: ColonyClient): Promise<EventLogs[]> => {
+  const events: EventLogs[] = [];
+  const eventLists = await Promise.all([
+    getColonyInitialisedEventLogs(colonyClient),
+    getColonyRoleSetEventLogs(colonyClient),
+    getPayoutClaimedEventLogs(colonyClient),
+    getDomainAddedEventLogs(colonyClient),
+  ]);
+
+  eventLists.forEach(eventList => {
+    events.push(...eventList);
+  });
+
+  return events.sort((eventA, eventB) => {
+    if (eventA.logTime > eventB.logTime) {
+      return -1;
+    }
+    return 1;
+  });
 };

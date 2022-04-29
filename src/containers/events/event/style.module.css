@@ -1,7 +1,15 @@
-.wrapper {
+.root {
   padding: 26px 20px;
   display: flex;
   background: white;
+}
+
+.root:hover {
+  background: #ffffff63;
+}
+
+.avatarWrapper {
+  width: 8%;
 }
 
 .avatar {
@@ -9,10 +17,20 @@
   margin-right: 20px;
 }
 
+.textWrapper {
+  width: 92%;
+}
+
 .title {
   font-size: 14px;
   font-weight: 400;
   margin: 0 0 8px 0;
+}
+
+.root:not(:hover) .title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .title strong {

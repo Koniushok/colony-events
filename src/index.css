@@ -1,16 +1,18 @@
 @import url('https://fonts.googleapis.com/css2?family=Mulish&display=swap');
 
 :root {
-  --bg-color: #f0f1f4;
+  --primary-color: #eaf3f7;
+  --secondary-color: #f4f0f3;
 
   --text-primary-color: #101415;
   --text-secondary-color: #828282;
 }
 
 body {
+  min-height: 100vh;
   color: var(--text-primary-color);
   font-family: 'Mulish', sans-serif;
-  background-color: var(--bg-color);
+  background: linear-gradient(var(--secondary-color), var(--primary-color)) fixed;
   margin: 0;
 }
 

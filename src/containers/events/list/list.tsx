@@ -2,7 +2,7 @@ import React from 'react';
 import styles from './style.module.css';
 
 interface ListProps {
-  children?: React.ReactNode;
+  children: React.ReactNode;
 }
 
 const List: React.FC<ListProps> = ({ children }) => {
