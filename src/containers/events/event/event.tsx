@@ -16,7 +16,7 @@ const Event: React.FC<EventProps> = ({ id, title, description }) => {
       </div>
       <div className={styles.textWrapper}>
         <h3 className={styles.title}>{title}</h3>
-        <p className={styles.description}>{description}</p>
+        {description && <p className={styles.description}>{description}</p>}
       </div>
     </div>
   );

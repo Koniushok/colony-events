@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { ColonyClient } from '@colony/colony-js';
-import Container from './container';
+import Container from '../../components/container';
 import List from './list';
 import Event from './event';
 
@@ -53,21 +53,28 @@ const Events: React.FC<EventsProps> = ({ colonyClient }) => {
     }
   };
 
+  if (error || !eventLogs) {
+    return (
+      <Container>
+        <h1>{error ? error : '...loading'}</h1>
+      </Container>
+    );
+  }
+
   return (
     <Container>
-      {error && error}
-      {eventLogs && (
-        <List>
-          {eventLogs.map(eventLog => (
-            <Event
-              key={eventLog.id}
-              title={renderEventLogTitle(eventLog)}
-              description={eventLog.logTime.toISOString()}
-              id={eventLog.userAddress}
-            />
-          ))}
-        </List>
-      )}
+      <List>
+        {eventLogs.map(eventLog => (
+          <Event
+            key={eventLog.id}
+            title={renderEventLogTitle(eventLog)}
+            description={
+              eventLog.logTime && eventLog.logTime.toLocaleDateString('en', { day: 'numeric', month: 'short' })
+            }
+            id={eventLog.userAddress}
+          />
+        ))}
+      </List>
     </Container>
   );
 };

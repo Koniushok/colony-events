@@ -54,8 +54,7 @@ export const getColonyInitialisedEventLogs = async (
 
   const parsedLogs = await Promise.all(
     eventLogs.map(async event => {
-      const parsedEvent = colonyClient.interface.parseLog(event);
-      const logTime = await parseLogTime(parsedEvent.blockHash);
+      const logTime = event.blockHash ? await parseLogTime(event.blockHash) : undefined;
       const userAddress = event.address;
 
       return {
@@ -71,14 +70,14 @@ export const getColonyInitialisedEventLogs = async (
 };
 
 export const getColonyRoleSetEventLogs = async (colonyClient: ColonyClient): Promise<ColonyRoleSetEventLog[]> => {
-  const eventFilter = colonyClient.filters.ColonyRoleSet(null, null, null);
+  const eventFilter = (colonyClient.filters as any).ColonyRoleSet();
   const eventLogs = await getLogs(colonyClient, eventFilter);
 
   const parsedLogs = await Promise.all(
     eventLogs.map(async event => {
       const parsedEvent = colonyClient.interface.parseLog(event);
 
-      const logTime = await parseLogTime(parsedEvent.blockHash);
+      const logTime = event.blockHash ? await parseLogTime(event.blockHash) : undefined;
       const domainId = parseBigNumber(parsedEvent.values.domainId);
       const userAddress = parsedEvent.values.user;
 
@@ -104,7 +103,7 @@ export const getPayoutClaimedEventLogs = async (colonyClient: ColonyClient): Pro
     eventLogs.map(async event => {
       const parsedEvent = colonyClient.interface.parseLog(event);
 
-      const logTime = await parseLogTime(parsedEvent.blockHash);
+      const logTime = event.blockHash ? await parseLogTime(event.blockHash) : undefined;
       const userAddress = await parseUserAddress(colonyClient, parsedEvent.values.fundingPotId);
       const amount = parseBigNumber(parsedEvent.values.amount);
       const fundingPotId = parseBigNumber(parsedEvent.values.fundingPotId);
@@ -133,7 +132,7 @@ export const getDomainAddedEventLogs = async (colonyClient: ColonyClient): Promi
     eventLogs.map(async event => {
       const parsedEvent = colonyClient.interface.parseLog(event);
 
-      const logTime = await parseLogTime(parsedEvent.blockHash);
+      const logTime = event.blockHash ? await parseLogTime(event.blockHash) : undefined;
       const domainId = parseBigNumber(parsedEvent.values.domainId);
       const userAddress = event.address;
 
@@ -164,7 +163,7 @@ export const getEventLogs = async (colonyClient: ColonyClient): Promise<EventLog
   });
 
   return events.sort((eventA, eventB) => {
-    if (eventA.logTime > eventB.logTime) {
+    if (eventA.logTime && eventB.logTime && eventA.logTime > eventB.logTime) {
       return -1;
     }
     return 1;

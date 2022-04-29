@@ -4,10 +4,9 @@ export enum EventLogTypes {
   PayoutClaimed = 'PayoutClaimed',
   DomainAdded = 'DomainAdded',
 }
-
 export interface ColonyEventBaseLog<Type extends EventLogTypes> {
   id: string;
-  logTime: Date;
+  logTime?: Date;
   type: Type;
   userAddress: string;
 }
@@ -17,8 +16,7 @@ export interface ColonyRoleSetEventLog extends ColonyEventBaseLog<EventLogTypes.
   domainId: string;
 }
 
-export interface ColonyInitialisedEventLog
-  extends ColonyEventBaseLog<EventLogTypes.ColonyInitialised> {}
+export interface ColonyInitialisedEventLog extends ColonyEventBaseLog<EventLogTypes.ColonyInitialised> {}
 
 export interface PayoutClaimedEventLog extends ColonyEventBaseLog<EventLogTypes.PayoutClaimed> {
   amount: string;
@@ -30,8 +28,4 @@ export interface DomainAddedEventLog extends ColonyEventBaseLog<EventLogTypes.Do
   domainId: string;
 }
 
-export type EventLogs =
-  | ColonyRoleSetEventLog
-  | ColonyInitialisedEventLog
-  | PayoutClaimedEventLog
-  | DomainAddedEventLog;
+export type EventLogs = ColonyRoleSetEventLog | ColonyInitialisedEventLog | PayoutClaimedEventLog | DomainAddedEventLog;

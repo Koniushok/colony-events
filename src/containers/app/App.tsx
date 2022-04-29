@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { ColonyClient } from '@colony/colony-js';
 
+import Container from '../../components/container';
 import { getColonyClient } from '../../api';
 import Events from '../events';
 
@@ -17,12 +18,14 @@ const App: React.FC = () => {
       .catch(() => setError('colony client fetch error'));
   }, []);
 
-  if (error) {
-    return <h1>{error}</h1>;
+  if (error || !colonyClient) {
+    return (
+      <Container>
+        <h1>{error ? error : '...loading'}</h1>
+      </Container>
+    );
   }
-  if (!colonyClient) {
-    return <h1>...loading</h1>;
-  }
+
   return <Events colonyClient={colonyClient} />;
 };
 
