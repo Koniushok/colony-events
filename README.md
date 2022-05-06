@@ -11,5 +11,5 @@ npm install
 ## Start dev server
 
 ```
-npm run
+npm run start
 ```
